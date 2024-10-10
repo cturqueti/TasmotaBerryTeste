@@ -9,7 +9,7 @@ class Motor_Control : Driver
     # tasmota.cmd("CounterDebounce 100")
     self.fast_loop_closure = def () self.fast_loop() end
     self.mqtt_loop_closure = def (topic, idx, payload_s, payload_b) self.mqtt_loop(topic, idx, payload_s, payload_b) end
-    mqtt.subscribe("cmnd/tasmota/run", self.mqtt_loop_closure)
+    mqtt.subscribe("cmnd/tasmotas/#", self.mqtt_loop_closure)
 
     self.fast_loop_counter = 0
 
@@ -18,12 +18,15 @@ class Motor_Control : Driver
   def mqtt_loop(topic, idx, payload_s, payload_b)
     print(topic)
     print("data: " .. payload_s)
-    if topic == "cmnd/tasmota/run"
+    if topic == "cmnd/tasmotas/run"
       print("Topico Correto")
       if payload_s == "1"
         print("Iniciando movimentação")
         self.run()
       end
+    elif topic == "cmnd/tasmotas/pwm"
+      print("Setado pwm para: " .. payload_s)
+      gpio.set_pwm(1,int(payload_s))
     end
   end
 
