@@ -1,6 +1,6 @@
 COUNTER_1 = 0
 class Motor_Control : Driver
-  var fast_loop_closure
+  var fast_loop_closure, mqtt_loop_closure
   var fast_loop_counter
   def init()
     import gpio
@@ -8,13 +8,23 @@ class Motor_Control : Driver
     # tasmota.cmd("GroupTopic tasmotas")
     # tasmota.cmd("CounterDebounce 100")
     self.fast_loop_closure = def () self.fast_loop() end
+    self.mqtt_loop_closure = def (topic, idx, payload_s, payload_b) self.mqtt_loop(topic, idx, payload_s, payload_b) end
+    mqtt.subscribe("cmnd/tasmota/run", self.mqtt_loop_closure)
 
     self.fast_loop_counter = 0
 
   end
 
-  def mqtt_data(topic, idx, data, databytes)
-    
+  def mqtt_loop(topic, idx, payload_s, payload_b)
+    print(topic)
+    print("data: " .. payload_s)
+    if topic == "cmnd/tasmota/run"
+      print("Topico Correto")
+      if payload_s == "1"
+        print("Iniciando movimentação")
+        self.run()
+      end
+    end
   end
 
   def fast_loop()
@@ -39,13 +49,8 @@ class Motor_Control : Driver
 
   def run()
     tasmota.add_fast_loop(self.fast_loop_closure)
-    tasmota.cmd("Counter1 0")
-  end
 
-  def mqtt_data(topic, idx, payload_s, payload_b)
-    print(topic)
-    print(payload_s)
-    return(false)
+    tasmota.cmd("Counter1 0")
   end
 
 end
